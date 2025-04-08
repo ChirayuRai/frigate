@@ -182,6 +182,7 @@ COPY docker/main/build_pysqlite3.sh /build_pysqlite3.sh
 RUN /build_pysqlite3.sh
 
 COPY docker/main/requirements-wheels.txt /requirements-wheels.txt
+COPY docker/main/degirum_headless-0.15.4-cp311-cp311-manylinux_2_35_x86_64.whl /degirum_headless-0.15.4-cp311-cp311-manylinux_2_35_x86_64.whl
 RUN pip3 wheel --wheel-dir=/wheels -r /requirements-wheels.txt
 
 # Install HailoRT & Wheels

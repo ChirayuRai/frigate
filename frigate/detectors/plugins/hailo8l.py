@@ -3,6 +3,7 @@ import os
 import queue
 import subprocess
 import threading
+import time
 import urllib.request
 from functools import partial
 from typing import Dict, List, Optional, Tuple
@@ -279,6 +280,9 @@ class HailoDetector(DetectionApi):
         self.request_counter = 0
         self.request_counter_lock = threading.Lock()
 
+        self.frame_total = 0
+        self.time_stats = dict()
+
         try:
             logger.debug(f"[INIT] Loading HEF model from {self.working_model_path}")
             self.inference_engine = HailoAsyncInference(
@@ -373,17 +377,31 @@ class HailoDetector(DetectionApi):
         return request_id
 
     def detect_raw(self, tensor_input):
+        self.frame_total += 1
+        self.time_stats["detect_start"] = time.time_ns()
         request_id = self._get_request_id()
 
+        start = time.time_ns()
         tensor_input = self.preprocess(tensor_input)
+        preprocess_duration = (time.time_ns() - start) * 1e-6
+        self.time_stats["preprocess_duration"] = (
+            self.time_stats.get("preprocess_duration", 0) + preprocess_duration
+        )
+        self.time_stats["preprocess_average"] = (
+            self.time_stats["preprocess_duration"] / self.frame_total
+        )
         if isinstance(tensor_input, np.ndarray) and len(tensor_input.shape) == 3:
             tensor_input = np.expand_dims(tensor_input, axis=0)
 
         self.input_queue.put((request_id, tensor_input))
         try:
+            start = time.time_ns()
             original_input, infer_results = self.response_store.get(
                 request_id, timeout=10.0
             )
+            inference_duration = (time.time_ns() - start) * 1e-6
+            self.time_stats["inference_duration"] = inference_duration
+
         except TimeoutError:
             logger.error(
                 f"Timeout waiting for inference results for request {request_id}"
@@ -416,6 +434,12 @@ class HailoDetector(DetectionApi):
                 pad = np.zeros((20 - detections_array.shape[0], 6), dtype=np.float32)
                 detections_array = np.vstack((detections_array, pad))
 
+        self.time_stats["total_duration"] = (
+            time.time_ns() - self.time_stats["detect_start"]
+        ) * 1e-6
+        time_string = ""
+        for key, value in self.time_stats.items():
+            time_string += f"{key}: {value}\n"
         return detections_array
 
     def preprocess(self, image):

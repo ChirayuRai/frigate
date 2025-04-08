@@ -27,6 +27,7 @@ services:
     devices:
       - /dev/bus/usb:/dev/bus/usb
       # - /dev/dri:/dev/dri # for intel hwaccel, needs to be updated for your hardware
+      - /dev/hailo0:/dev/hailo0
     volumes:
       - .:/workspace/frigate:cached
       - ./web/dist:/opt/frigate/web:cached
@@ -34,8 +35,16 @@ services:
       - ./config:/config
       - ./debug:/media/frigate
       - /dev/bus/usb:/dev/bus/usb
+      - ./model/yolov8n_relu6_coco--640x640_quant_hailort_hailo8_1:/hailo-model
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:1.6
     ports:
       - "1883:1883"
+  degirum_detector:
+    container_name: degirum
+    image: degirum/aiserver:latest
+    privileged: true
+    ports:
+      - "8778:8778"
+
