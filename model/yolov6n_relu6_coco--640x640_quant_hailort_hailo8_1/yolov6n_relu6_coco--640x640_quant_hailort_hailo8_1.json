@@ -11,12 +11,12 @@
   ],
   "MODEL_PARAMETERS": [
     {
-      "ModelPath": "yolov8n_relu6_coco--640x640_quant_hailort_hailo8_1.hef"
+      "ModelPath": "yolov6n_relu6_coco--640x640_quant_hailort_hailo8_1.hef"
     }
   ],
   "POST_PROCESS": [
     {
-      "OutputPostprocessType": "None"
+      "PythonFile": "pp.py"
     }
   ],
   "PRE_PROCESS": [

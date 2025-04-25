@@ -182,7 +182,7 @@ COPY docker/main/build_pysqlite3.sh /build_pysqlite3.sh
 RUN /build_pysqlite3.sh
 
 COPY docker/main/requirements-wheels.txt /requirements-wheels.txt
-COPY docker/main/degirum_headless-0.15.4-cp311-cp311-manylinux_2_35_x86_64.whl /degirum_headless-0.15.4-cp311-cp311-manylinux_2_35_x86_64.whl
+# COPY docker/main/degirum_headless-0.16.0-cp311-cp311-manylinux_2_35_x86_64.whl /degirum_headless-0.16.0-cp311-cp311-manylinux_2_35_x86_64.whl
 RUN pip3 wheel --wheel-dir=/wheels -r /requirements-wheels.txt
 
 # Install HailoRT & Wheels
@@ -243,6 +243,11 @@ RUN --mount=type=bind,from=wheels,source=/wheels,target=/deps/wheels \
 
 COPY --from=deps-rootfs / /
 
+# Now that libhailo has been inserted into the proper place, we need to replace it with the runtime
+# version that actually works with multi proces service
+COPY docker/degirum/degirum_compatible_libhailort.so /usr/local/lib/libhailort.so
+COPY docker/degirum/degirum_compatible_libhailort.so.4.20.0 /usr/local/lib/libhailort.so.4.20.0
+
 RUN ldconfig
 
 EXPOSE 5000
@@ -287,6 +292,10 @@ RUN apt-get update \
 
 RUN --mount=type=bind,source=./docker/main/requirements-dev.txt,target=/workspace/frigate/requirements-dev.txt \
     pip3 install -r requirements-dev.txt
+
+# For some reason, libpython3.11 is not found, so reinstall python3-dev
+RUN apt-get update -qq \
+    && apt-get install python3-dev -y
 
 HEALTHCHECK NONE
 

@@ -2,6 +2,7 @@ version: "3"
 services:
   devcontainer:
     container_name: frigate-devcontainer
+    privileged: true
     # add groups from host for render, plugdev, video
     group_add:
       - "109" # render
@@ -24,6 +25,8 @@ services:
     #                     capabilities: [gpu]
     environment:
       YOLO_MODELS: ""
+      HAILO_LOG_LEVEL: "DEBUG"
+      HAILO_LOGGER_PATH: "/workspace/frigate/hailo.log"
     devices:
       - /dev/bus/usb:/dev/bus/usb
       # - /dev/dri:/dev/dri # for intel hwaccel, needs to be updated for your hardware
@@ -35,16 +38,28 @@ services:
       - ./config:/config
       - ./debug:/media/frigate
       - /dev/bus/usb:/dev/bus/usb
-      - ./model/yolov8n_relu6_coco--640x640_quant_hailort_hailo8_1:/hailo-model
+      - ./model:/zoo
+      # Trying to get hailo to work
+      # - ./hailort_4.20.0_amd64.deb:/tmp/hailort.deb
+      - /tmp:/tmp
+      - /var/run/hailo/:/var/run/hailo/
+      # - /dev:/dev
+      # - /lib/firmware:/lib/firmware
+      # - /lib/udev/rules.d:/lib/udev/rules.d
+      # - /lib/modules:/lib/modules
+      # - /run/udev:/run/udev:ro
+      # - /usr/lib/libhailort.so:/usr/local/lib/libhailort.so.4.20.0
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:1.6
     ports:
       - "1883:1883"
-  degirum_detector:
-    container_name: degirum
-    image: degirum/aiserver:latest
-    privileged: true
-    ports:
-      - "8778:8778"
+  # degirum_detector:
+  #   container_name: degirum
+  #   image: degirum/aiserver:latest
+  #   privileged: true
+  #   volumes:
+  #     - ./model:/zoo
+  #   ports:
+  #     - "8778:8778"
 
