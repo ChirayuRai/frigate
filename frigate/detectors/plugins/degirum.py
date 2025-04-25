@@ -14,30 +14,12 @@ logger = logging.getLogger(__name__)
 DETECTOR_KEY = "degirum"
 
 # TODO: Check yolo (one of all gen), mobilenet, efficient net,
-# FOr some reason, if you use docker cp libhailo.so into the container, then run the
-# install for hailort.deb again, multi process service works again
-# Using an image, ensure that the results returned for yolov6 are the same for both degirum and hailo detector (degirum
-# when using local and the custom pp )
-
-# For some other reason, when you launch the dev container, ALL THE PORTS NEEDED for frigate
-# are already used on some invisible process. Might be a kernel thing? Have to investigate and
-# find out.
-
-#      "PythonFile": "pp.py"
-# Add this to POST PROCESS as a line in the yolov6 guy
 
 # Pure hailo detector: average is about 5.3-5.5 ms
 # degirum without post processor + returning empty detections immediately == 5.1-5.2 ms
-# meaning the bottle neck is when we are packing up the output of the model into the inferenceResults obj +
-# also going through pp.py to create a readable format for hte output results
-# Also, we have that loop over the array for detections to map it, but I don't think that would matter too much tbh
 
-# how to run this: first you need to sudo apt-get update && sudo apt-get upgrade && sudo apt-get install python3-dev -y
-# then, install hailo runtime
 # make sure on HOST machine, the hailort service is turned OFF
 # That will make sure multiprocess service doesn't get invoked, and things aren't messed up
-# TODO: Confirm that output of everything matches, but first I want to make sure I can have the docker file handle as much
-# setup as possible --> confirmed, the outputs match :D
 
 """
 [HailoRT] [error] CHECK_SUCCESS failed with status=HAILO_INTERNAL_FAILURE(8)
@@ -67,15 +49,7 @@ Orca:
     efficientdet: good
     mobiledet:  good
     mobilenet ssd coco: good
-
-
-
-
-
 """
-
-
-
 
 
 ### STREAM CLASS FROM DG TOOLS ###
